@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TAARA — AI Skincare</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root {
+  --beige: #F5EFE6;
+  --pearl: #FAF8F5;
+  --nude: #E8D5C4;
+  --blush: #D4A5A0;
+  --warm: #C4896A;
+  --deep: #3D2B1F;
+  --ink: #1C1410;
+  --mist: rgba(245,239,230,0.6);
+  --glass: rgba(255,255,255,0.12);
+  --glass-border: rgba(255,255,255,0.25);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:#0E0A08;
+  color:var(--pearl);
+  font-family:'DM Sans',sans-serif;
+  font-weight:300;
+  overflow-x:hidden;
+  cursor:none;
+}
+/* CURSOR */
+#cursor{
+  position:fixed;width:12px;height:12px;
+  background:var(--blush);border-radius:50%;
+  pointer-events:none;z-index:9999;
+  transition:transform 0.15s ease,opacity 0.3s;
+  transform:translate(-50%,-50%);
+}
+#cursor-ring{
+  position:fixed;width:40px;height:40px;
+  border:1px solid rgba(212,165,160,0.4);
+  border-radius:50%;pointer-events:none;z-index:9998;
+  transform:translate(-50%,-50%);
+  transition:width 0.3s,height 0.3s,border-color 0.3s;
+}
+/* NAV */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:1.5rem 3rem;
+  display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(180deg,rgba(251,247,242,0.85) 0%,transparent 100%);
+  backdrop-filter:blur(12px);
+}
+.nav-logo{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.5rem;font-weight:400;
+  letter-spacing:0.4em;
+  background:linear-gradient(135deg,#8C5438 0%,#C4896A 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.nav-links{display:flex;gap:2.5rem;list-style:none;}
+.nav-links a{
+  color:rgba(28,20,16,0.55);font-size:0.78rem;
+  letter-spacing:0.12em;text-transform:uppercase;
+  text-decoration:none;transition:color 0.3s;
+}
+.nav-links a:hover{color:var(--warm);}
+.nav-cta{
+  padding:0.55rem 1.5rem;
+  border:1px solid rgba(140,84,56,0.3);
+  border-radius:3px;color:var(--warm);
+  background:rgba(255,255,255,0.6);backdrop-filter:blur(8px);
+  font-family:'DM Sans',sans-serif;font-size:0.75rem;
+  letter-spacing:0.1em;text-transform:uppercase;cursor:none;
+  transition:all 0.3s;text-decoration:none;
+}
+.nav-cta:hover{background:rgba(140,84,56,0.08);border-color:var(--warm);}
+
+/* ═══════════════════════════════
+   HERO — BRIGHT LUXURY STUDIO
+═══════════════════════════════ */
+#hero{
+  position:relative;
+  height:100vh;min-height:680px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  align-items:center;
+  overflow:hidden;
+  background:
+    radial-gradient(ellipse 70% 90% at 78% 55%, rgba(232,213,196,0.65) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 65% at 82% 28%, rgba(250,246,240,0.95) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 80% at 18% 72%, rgba(212,165,160,0.14) 0%, transparent 58%),
+    linear-gradient(158deg, #FBF7F2 0%, #F5EDE2 45%, #EEE1D0 100%);
+}
+#hero::before{
+  content:'';position:absolute;
+  top:-15%;right:-5%;width:60%;height:75%;
+  background:radial-gradient(ellipse at 65% 20%, rgba(255,250,244,0.9) 0%, transparent 70%);
+  pointer-events:none;z-index:1;
+}
+#hero-bottom-fade{
+  position:absolute;bottom:0;left:0;right:0;height:100px;
+  background:linear-gradient(180deg,transparent,rgba(14,10,8,0.12));
+  pointer-events:none;z-index:4;
+}
+#hero-canvas{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  z-index:2;pointer-events:none;
+}
+
+/* ── LEFT: TYPOGRAPHY ── */
+.hero-content{
+  position:relative;z-index:5;
+  padding:0 3vw 0 7vw;
+  color:var(--ink);
+}
+.hero-eyebrow{
+  display:flex;align-items:center;gap:0.9rem;
+  margin-bottom:2rem;
+  opacity:0;animation:revealFade 1.2s cubic-bezier(0.16,1,0.3,1) 0.8s forwards;
+}
+.hero-eyebrow-line{width:22px;height:1px;background:var(--warm);}
+.hero-eyebrow-text{
+  font-size:0.62rem;letter-spacing:0.42em;
+  text-transform:uppercase;color:var(--warm);
+}
+.hero-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2.7rem,4.8vw,4.8rem);
+  font-weight:300;line-height:1.06;
+  opacity:0;animation:revealFade 1.4s cubic-bezier(0.16,1,0.3,1) 1.0s forwards;
+  color:var(--ink);
+}
+.hero-title-line1{display:block;letter-spacing:-0.01em;}
+.hero-title-line2{
+  display:block;font-style:italic;
+  background:linear-gradient(118deg,#8C5438 0%,#B87D5C 45%,#C4896A 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-top:0.04em;
+}
+.hero-divider{
+  width:32px;height:1px;
+  background:linear-gradient(90deg,rgba(196,137,106,0.55),transparent);
+  margin:1.7rem 0;
+  opacity:0;animation:revealFade 1s cubic-bezier(0.16,1,0.3,1) 1.3s forwards;
+}
+.hero-sub{
+  font-size:0.88rem;line-height:1.9;
+  color:rgba(28,20,16,0.52);
+  max-width:340px;margin:0 0 2.4rem;
+  opacity:0;animation:revealFade 1.2s cubic-bezier(0.16,1,0.3,1) 1.4s forwards;
+}
+.hero-btns{
+  display:flex;gap:0.8rem;flex-wrap:wrap;
+  opacity:0;animation:revealFade 1.2s cubic-bezier(0.16,1,0.3,1) 1.7s forwards;
+}
+.btn-primary{
+  padding:0.8rem 1.8rem;
+  background:linear-gradient(135deg,#8C5438,#C4896A);
+  border:none;border-radius:3px;
+  color:#FAF8F5;
+  font-family:'DM Sans',sans-serif;
+  font-size:0.72rem;letter-spacing:0.16em;text-transform:uppercase;
+  cursor:none;
+  box-shadow:0 4px 18px rgba(140,84,56,0.24);
+  transition:all 0.5s cubic-bezier(0.16,1,0.3,1);
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(140,84,56,0.3);letter-spacing:0.2em;}
+.btn-secondary{
+  padding:0.8rem 1.8rem;
+  background:rgba(28,20,16,0.05);
+  border:1px solid rgba(28,20,16,0.16);
+  border-radius:3px;
+  color:rgba(28,20,16,0.6);
+  font-family:'DM Sans',sans-serif;
+  font-size:0.72rem;letter-spacing:0.16em;text-transform:uppercase;
+  cursor:none;transition:all 0.5s cubic-bezier(0.16,1,0.3,1);
+}
+.btn-secondary:hover{background:rgba(28,20,16,0.1);border-color:rgba(196,137,106,0.45);color:var(--deep);transform:translateY(-2px);}
+
+/* ── RIGHT: CSS 3D PRODUCT STAGE ── */
+.hero-stage{
+  position:relative;z-index:5;
+  height:100%;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+.product-scene{
+  position:relative;
+  width:400px;height:520px;
+}
+.glow-orb{
+  position:absolute;border-radius:50%;pointer-events:none;filter:blur(45px);
+}
+.orb1{width:220px;height:220px;top:15%;left:10%;background:rgba(232,213,196,0.75);animation:orbPulse 9s ease-in-out infinite;}
+.orb2{width:160px;height:160px;top:52%;left:52%;background:rgba(212,165,160,0.45);animation:orbPulse 12s ease-in-out infinite reverse;}
+.orb3{width:100px;height:100px;top:5%;left:62%;background:rgba(196,137,106,0.28);animation:orbPulse 7s ease-in-out infinite;}
+@keyframes orbPulse{0%,100%{transform:scale(1);opacity:0.85;}50%{transform:scale(1.18);opacity:0.55;}}
+
+/* Products */
+.prod{position:absolute;filter:drop-shadow(0 16px 32px rgba(140,84,56,0.18)) drop-shadow(0 2px 8px rgba(140,84,56,0.1));}
+.prod svg{width:100%;height:auto;display:block;}
+/* Hero serum */
+.prod-serum{width:88px;top:50%;left:50%;transform:translate(-42%,-58%);z-index:10;
+  filter:drop-shadow(0 24px 48px rgba(140,84,56,0.22)) drop-shadow(0 4px 14px rgba(140,84,56,0.14));
+  animation:floatHero 7s ease-in-out infinite;}
+@keyframes floatHero{0%,100%{transform:translate(-42%,-58%) translateY(0);}35%{transform:translate(-42%,-58%) translateY(-14px);}70%{transform:translate(-42%,-58%) translateY(9px);}}
+/* Jar */
+.prod-jar{width:74px;top:60%;left:10%;z-index:8;animation:floatA 8.5s ease-in-out infinite;}
+/* Toner */
+.prod-toner{width:50px;top:6%;left:62%;z-index:7;animation:floatB 9.5s ease-in-out infinite;}
+/* Tube */
+.prod-tube{width:46px;top:66%;left:66%;z-index:7;animation:floatC 7.8s ease-in-out infinite;}
+/* Sunscreen */
+.prod-sun{width:60px;top:4%;left:2%;z-index:7;animation:floatA 10.5s ease-in-out infinite reverse;}
+/* Dropper */
+.prod-dropper{width:34px;top:38%;left:80%;z-index:8;animation:floatB 8.2s ease-in-out infinite reverse;}
+
+@keyframes floatA{0%,100%{transform:translateY(0);}40%{transform:translateY(-11px);}75%{transform:translateY(7px);}}
+@keyframes floatB{0%,100%{transform:translateY(0);}30%{transform:translateY(-9px);}70%{transform:translateY(6px);}}
+@keyframes floatC{0%,100%{transform:translateY(0);}45%{transform:translateY(-8px);}80%{transform:translateY(5px);}}
+
+/* Routine step labels */
+.step-label{
+  position:absolute;
+  background:rgba(255,255,255,0.78);backdrop-filter:blur(12px);
+  border:1px solid rgba(196,137,106,0.18);border-radius:50px;
+  padding:0.25rem 0.7rem;
+  font-size:0.56rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--warm);
+  white-space:nowrap;z-index:12;animation:floatB 10s ease-in-out infinite;
+}
+.step-label::before{content:'';position:absolute;width:4px;height:4px;border-radius:50%;background:var(--warm);left:-7px;top:50%;transform:translateY(-50%);}
+.label-cleanser{top:72%;left:0%;animation-delay:-1s;}
+.label-toner{top:4%;left:55%;animation-delay:-3.5s;}
+.label-moisturizer{top:58%;left:2%;animation-delay:-6s;}
+.label-sunscreen{top:-2%;left:0%;animation-delay:-8s;}
+
+/* Scroll indicator */
+.scroll-hint{
+  position:absolute;bottom:2.2rem;left:7vw;
+  display:flex;align-items:center;gap:1rem;
+  opacity:0;animation:revealFade 1s ease 2.4s forwards;z-index:6;
+}
+.scroll-hint span{font-size:0.58rem;letter-spacing:0.32em;text-transform:uppercase;color:rgba(28,20,16,0.32);}
+.scroll-line{width:40px;height:1px;background:linear-gradient(90deg,rgba(196,137,106,0.45),transparent);animation:scrollExtend 2.5s ease 3s infinite alternate;}
+@keyframes scrollExtend{0%{width:26px;opacity:0.3;}100%{width:50px;opacity:0.65;}}
+@keyframes revealFade{from{opacity:0;transform:translateY(15px);}to{opacity:1;transform:translateY(0);}}
+
+/* scroll-line used in sections below hero */
+
+/* SECTION BASE */
+section{padding:7rem 3rem;}
+.section-label{
+  font-size:0.65rem;letter-spacing:0.35em;text-transform:uppercase;
+  color:var(--blush);margin-bottom:1.2rem;
+}
+.section-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2.2rem,4vw,3.5rem);
+  font-weight:300;line-height:1.2;
+  margin-bottom:1rem;
+}
+.section-sub{
+  color:rgba(250,248,245,0.55);
+  font-size:0.95rem;line-height:1.8;max-width:480px;
+}
+
+/* HOW IT WORKS */
+#how{background:#0E0A08;}
+.how-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:2px;margin-top:4rem;
+}
+.how-card{
+  padding:2.5rem;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.06);
+  position:relative;overflow:hidden;
+  transition:background 0.4s;
+}
+.how-card:hover{background:rgba(212,165,160,0.06);}
+.how-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(212,165,160,0.08),transparent);
+  opacity:0;transition:opacity 0.4s;
+}
+.how-card:hover::before{opacity:1;}
+.how-num{
+  font-family:'Cormorant Garamond',serif;
+  font-size:4rem;font-weight:300;
+  color:rgba(212,165,160,0.15);
+  line-height:1;margin-bottom:1.5rem;
+}
+.how-card h3{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.4rem;font-weight:400;
+  margin-bottom:0.8rem;
+}
+.how-card p{
+  color:rgba(250,248,245,0.5);
+  font-size:0.88rem;line-height:1.75;
+}
+.how-icon{
+  width:44px;height:44px;margin-bottom:1.5rem;
+  border:1px solid rgba(212,165,160,0.3);
+  border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;
+}
+
+/* PATCH SECTION */
+#patches{
+  background:linear-gradient(180deg,#0E0A08 0%,#14100C 100%);
+}
+.patch-intro{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:4rem;align-items:center;margin-bottom:5rem;
+}
+.patch-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);
+  gap:1.5rem;
+}
+.patch-card{
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:20px;padding:2rem;
+  transition:all 0.4s;position:relative;overflow:hidden;
+}
+.patch-card:hover{
+  border-color:rgba(212,165,160,0.35);
+  background:rgba(212,165,160,0.06);
+  transform:translateY(-4px);
+}
+.patch-name{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.2rem;margin-bottom:1rem;
+  display:flex;align-items:center;gap:0.7rem;
+}
+.patch-dot{
+  width:10px;height:10px;border-radius:50%;
+  background:var(--blush);
+}
+.patch-strip{
+  width:100%;height:10px;border-radius:50px;
+  margin-bottom:1.2rem;position:relative;
+  overflow:hidden;
+}
+.color-options{
+  display:flex;gap:0.5rem;flex-wrap:wrap;
+  margin-bottom:1rem;
+}
+.color-btn{
+  width:30px;height:30px;border-radius:50%;
+  border:2px solid transparent;cursor:none;
+  transition:all 0.3s;position:relative;
+}
+.color-btn:hover,.color-btn.active{
+  border-color:var(--pearl);
+  transform:scale(1.15);
+}
+.color-btn.active::after{
+  content:'✓';position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  font-size:11px;color:white;
+}
+.patch-result{
+  font-size:0.78rem;letter-spacing:0.05em;
+  color:rgba(250,248,245,0.5);
+  border-top:1px solid rgba(255,255,255,0.06);
+  padding-top:0.8rem;margin-top:0.8rem;
+  min-height:3rem;transition:color 0.4s;
+}
+.patch-result.active{color:var(--blush);}
+
+/* SCORES */
+.score-panel{
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:24px;padding:2.5rem;
+  margin-top:3rem;
+}
+.score-panel h3{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.5rem;margin-bottom:2rem;
+}
+.score-row{
+  display:flex;align-items:center;gap:1.5rem;
+  margin-bottom:1.5rem;
+}
+.score-label{
+  font-size:0.78rem;letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:rgba(250,248,245,0.5);
+  min-width:100px;
+}
+.score-bar-wrap{
+  flex:1;height:6px;background:rgba(255,255,255,0.08);
+  border-radius:50px;overflow:hidden;
+}
+.score-bar{
+  height:100%;border-radius:50px;
+  background:linear-gradient(90deg,var(--warm),var(--blush));
+  width:0%;transition:width 1.5s cubic-bezier(0.23,1,0.32,1);
+}
+.score-val{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.1rem;min-width:40px;text-align:right;
+}
+
+/* FACE ANALYSIS */
+#analysis{
+  background:linear-gradient(180deg,#14100C 0%,#0E0A08 100%);
+}
+.analysis-wrap{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:4rem;align-items:center;
+}
+.face-scanner{
+  position:relative;
+  aspect-ratio:1;max-width:400px;
+  margin:0 auto;
+}
+.scanner-frame{
+  position:relative;width:100%;height:100%;
+  border-radius:50%;
+  background:radial-gradient(ellipse at center,rgba(212,165,160,0.08),transparent 70%);
+  border:1px solid rgba(212,165,160,0.2);
+  display:flex;align-items:center;justify-content:center;
+}
+.scanner-frame::before{
+  content:'';position:absolute;
+  width:80%;height:80%;
+  border:1px dashed rgba(212,165,160,0.15);
+  border-radius:50%;
+  animation:spinSlow 15s linear infinite;
+}
+.scanner-frame::after{
+  content:'';position:absolute;
+  width:60%;height:60%;
+  border:1px dashed rgba(212,165,160,0.1);
+  border-radius:50%;
+  animation:spinSlow 10s linear infinite reverse;
+}
+.face-icon{font-size:5rem;z-index:1;}
+.scan-line{
+  position:absolute;top:0;left:50%;
+  width:1px;height:0%;
+  background:linear-gradient(180deg,transparent,var(--blush),transparent);
+  animation:scan 3s ease-in-out infinite;
+}
+.scanner-dots{
+  position:absolute;inset:0;
+}
+.s-dot{
+  position:absolute;
+  width:6px;height:6px;border-radius:50%;
+  background:var(--blush);
+  animation:pulse 2s ease-in-out infinite;
+}
+.upload-zone{
+  border:1px dashed rgba(212,165,160,0.3);
+  border-radius:20px;padding:3rem;
+  text-align:center;
+  background:rgba(212,165,160,0.03);
+  transition:all 0.4s;cursor:none;
+}
+.upload-zone:hover{
+  background:rgba(212,165,160,0.07);
+  border-color:rgba(212,165,160,0.5);
+}
+.upload-icon{font-size:2rem;margin-bottom:1rem;}
+.upload-zone h3{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.3rem;margin-bottom:0.5rem;
+}
+.upload-zone p{
+  font-size:0.82rem;color:rgba(250,248,245,0.45);
+  margin-bottom:1.5rem;line-height:1.6;
+}
+.detection-tags{
+  display:flex;flex-wrap:wrap;gap:0.5rem;
+  margin-top:1.5rem;
+}
+.det-tag{
+  padding:0.35rem 0.9rem;
+  background:rgba(212,165,160,0.1);
+  border:1px solid rgba(212,165,160,0.2);
+  border-radius:50px;
+  font-size:0.72rem;letter-spacing:0.06em;
+  color:var(--nude);
+}
+
+/* RECOMMENDATIONS */
+#recommend{background:#0E0A08;}
+.rec-intro{
+  text-align:center;max-width:600px;margin:0 auto 4rem;
+}
+.rec-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:1.5rem;
+}
+.rec-card{
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:20px;padding:1.8rem;
+  transition:all 0.4s;
+}
+.rec-card:hover{
+  transform:translateY(-6px);
+  border-color:rgba(212,165,160,0.3);
+  background:rgba(212,165,160,0.05);
+}
+.rec-brand{
+  font-size:0.65rem;letter-spacing:0.2em;
+  text-transform:uppercase;color:var(--blush);
+  margin-bottom:0.4rem;
+}
+.rec-name{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.2rem;margin-bottom:0.8rem;
+}
+.rec-why{
+  font-size:0.8rem;color:rgba(250,248,245,0.45);
+  line-height:1.7;margin-bottom:1rem;
+}
+.rec-ingredient{
+  display:flex;align-items:center;gap:0.5rem;
+  padding:0.5rem 0.8rem;
+  background:rgba(212,165,160,0.08);
+  border-radius:8px;font-size:0.75rem;
+  color:var(--nude);margin-bottom:1rem;
+}
+.compat-bar{
+  display:flex;align-items:center;gap:0.8rem;
+  margin-bottom:1rem;
+}
+.compat-label{
+  font-size:0.7rem;color:rgba(250,248,245,0.4);
+  letter-spacing:0.05em;white-space:nowrap;
+}
+.compat-track{
+  flex:1;height:4px;
+  background:rgba(255,255,255,0.07);
+  border-radius:50px;overflow:hidden;
+}
+.compat-fill{
+  height:100%;border-radius:50px;
+  background:linear-gradient(90deg,var(--warm),var(--blush));
+}
+.rec-link{
+  display:inline-flex;align-items:center;gap:0.4rem;
+  font-size:0.75rem;color:var(--blush);
+  text-decoration:none;letter-spacing:0.05em;
+  transition:gap 0.3s;
+}
+.rec-link:hover{gap:0.7rem;}
+
+/* FOOTER */
+footer{
+  padding:4rem 3rem 2rem;
+  border-top:1px solid rgba(255,255,255,0.05);
+}
+.footer-grid{
+  display:grid;grid-template-columns:2fr 1fr 1fr 1fr;
+  gap:3rem;margin-bottom:3rem;
+}
+.footer-brand .nav-logo{display:block;margin-bottom:1rem;}
+.footer-brand p{
+  font-size:0.82rem;color:rgba(250,248,245,0.4);
+  line-height:1.7;max-width:280px;
+}
+.footer-col h4{
+  font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--blush);margin-bottom:1.2rem;
+}
+.footer-col a{
+  display:block;color:rgba(250,248,245,0.45);
+  text-decoration:none;font-size:0.82rem;
+  margin-bottom:0.6rem;transition:color 0.3s;
+}
+.footer-col a:hover{color:var(--nude);}
+.footer-bottom{
+  display:flex;justify-content:space-between;
+  align-items:center;
+  padding-top:2rem;
+  border-top:1px solid rgba(255,255,255,0.04);
+}
+.footer-bottom p{
+  font-size:0.75rem;color:rgba(250,248,245,0.2);
+}
+.footer-badge{
+  font-size:0.7rem;letter-spacing:0.1em;
+  color:rgba(212,165,160,0.4);
+  border:1px solid rgba(212,165,160,0.15);
+  padding:0.3rem 0.8rem;border-radius:50px;
+}
+
+/* ANIMATIONS */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(24px);}
+  to{opacity:1;transform:translateY(0);}
+}
+@keyframes spinSlow{
+  from{transform:rotate(0deg);}
+  to{transform:rotate(360deg);}
+}
+@keyframes scan{
+  0%{height:0%;top:0;opacity:1;}
+  50%{height:100%;opacity:1;}
+  100%{height:0%;top:100%;opacity:0;}
+}
+@keyframes pulse{
+  0%,100%{opacity:0.3;transform:scale(1);}
+  50%{opacity:1;transform:scale(1.5);}
+}
+@keyframes scrollPulse{
+  0%,100%{transform:scaleY(1);opacity:1;}
+  50%{transform:scaleY(0.6);opacity:0.5;}
+}
+@keyframes float{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-20px);}
+}
+
+/* LOADING SCREEN */
+#loader{
+  position:fixed;inset:0;z-index:10000;
+  background:#0E0A08;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  transition:opacity 0.8s,visibility 0.8s;
+}
+#loader.done{opacity:0;visibility:hidden;}
+.loader-logo{
+  font-family:'Cormorant Garamond',serif;
+  font-size:2rem;font-weight:300;
+  letter-spacing:0.5em;
+  background:linear-gradient(135deg,var(--nude),var(--blush));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  animation:pulse 2s ease-in-out infinite;
+}
+.loader-line{
+  width:80px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--blush),transparent);
+  margin-top:2rem;
+  animation:widen 1.5s ease-in-out infinite alternate;
+}
+@keyframes widen{
+  from{width:40px;opacity:0.3;}
+  to{width:120px;opacity:1;}
+}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .how-grid{grid-template-columns:1fr;}
+  .patch-intro{grid-template-columns:1fr;}
+  .analysis-wrap{grid-template-columns:1fr;}
+  .footer-grid{grid-template-columns:1fr 1fr;}
+  nav{padding:1.2rem 1.5rem;}
+  .nav-links{display:none;}
+  section{padding:5rem 1.5rem;}
+  /* Hero stacks on mobile */
+  #hero{grid-template-columns:1fr;grid-template-rows:auto auto;align-items:start;padding-top:6rem;}
+  .hero-content{padding:2rem 1.5rem 0;grid-row:1;}
+  .hero-stage{grid-row:2;height:340px;}
+  .product-scene{width:320px;height:340px;}
+  .scroll-hint{display:none;}
+}
+@media(max-width:600px){
+  .patch-grid{grid-template-columns:1fr;}
+  .hero-title{font-size:2.4rem;}
+  .footer-grid{grid-template-columns:1fr;}
+  .product-scene{width:280px;height:300px;}
+}
+
+/* AMBIENT PARTICLES */
+.particle{
+  position:fixed;pointer-events:none;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(212,165,160,0.6),transparent);
+  animation:particleFloat linear infinite;
+  z-index:0;
+}
+@keyframes particleFloat{
+  0%{transform:translateY(100vh) scale(0);opacity:0;}
+  10%{opacity:1;}
+  90%{opacity:0.5;}
+  100%{transform:translateY(-20vh) scale(1.5);opacity:0;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-logo">T A A R A</div>
+  <div class="loader-line"></div>
+</div>
+
+<!-- CURSOR -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">T A A R A</div>
+  <ul class="nav-links">
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#patches">Patch Analysis</a></li>
+    <li><a href="#analysis">Face Scan</a></li>
+    <li><a href="#recommend">Routine</a></li>
+  </ul>
+  <a href="#patches" class="nav-cta">Start Analysis</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div id="hero-bottom-fade"></div>
+  <canvas id="hero-canvas"></canvas>
+
+  <!-- LEFT: Typography -->
+  <div class="hero-content">
+    <div class="hero-eyebrow">
+      <div class="hero-eyebrow-line"></div>
+      <span class="hero-eyebrow-text">AI Skincare Intelligence</span>
+    </div>
+    <h1 class="hero-title">
+      <span class="hero-title-line1">Your skin speaks.</span>
+      <span class="hero-title-line2">TAARA listens.</span>
+    </h1>
+    <div class="hero-divider"></div>
+    <p class="hero-sub">AI-powered skincare through intelligent diagnostic patches and personalized facial analysis.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="document.getElementById('patches').scrollIntoView({behavior:'smooth'})">Start Skin Analysis</button>
+      <button class="btn-secondary" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">Explore TAARA</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: Floating Product Stage -->
+  <div class="hero-stage">
+    <div class="product-scene">
+      <!-- Glow orbs behind products -->
+      <div class="glow-orb orb1"></div>
+      <div class="glow-orb orb2"></div>
+      <div class="glow-orb orb3"></div>
+
+      <!-- HERO SERUM BOTTLE — premium tall dropper -->
+      <div class="prod prod-serum">
+        <svg viewBox="0 0 88 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="sg1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#F0E6DC"/><stop offset="45%" stop-color="#FAF5EF"/><stop offset="100%" stop-color="#DDD0C4"/></linearGradient>
+            <linearGradient id="sg2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#B07A5E"/><stop offset="50%" stop-color="#C8967A"/><stop offset="100%" stop-color="#9A6248"/></linearGradient>
+            <linearGradient id="sg3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E8D5C4" stop-opacity="0.6"/><stop offset="100%" stop-color="#C4A090" stop-opacity="0.2"/></linearGradient>
+            <linearGradient id="liq" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#DDB89A" stop-opacity="0.5"/><stop offset="100%" stop-color="#F0D5BC" stop-opacity="0.3"/></linearGradient>
+            <filter id="blur2"><feGaussianBlur stdDeviation="1.5"/></filter>
+          </defs>
+          <!-- Body shadow -->
+          <ellipse cx="44" cy="235" rx="18" ry="4" fill="rgba(140,84,56,0.12)" filter="url(#blur2)"/>
+          <!-- Body -->
+          <rect x="16" y="70" width="56" height="150" rx="8" fill="url(#sg1)"/>
+          <!-- Inner liquid -->
+          <rect x="22" y="100" width="44" height="100" rx="6" fill="url(#liq)"/>
+          <!-- Body highlight -->
+          <rect x="20" y="78" width="10" height="130" rx="5" fill="rgba(255,255,255,0.45)"/>
+          <!-- Label area -->
+          <rect x="16" y="130" width="56" height="50" rx="0" fill="rgba(196,137,106,0.12)"/>
+          <line x1="16" y1="130" x2="72" y2="130" stroke="rgba(196,137,106,0.25)" stroke-width="0.5"/>
+          <line x1="16" y1="180" x2="72" y2="180" stroke="rgba(196,137,106,0.25)" stroke-width="0.5"/>
+          <!-- Label text marks -->
+          <rect x="26" y="143" width="20" height="1.5" rx="1" fill="rgba(140,84,56,0.35)"/>
+          <rect x="26" y="149" width="30" height="1" rx="1" fill="rgba(140,84,56,0.2)"/>
+          <rect x="26" y="155" width="16" height="1" rx="1" fill="rgba(140,84,56,0.2)"/>
+          <!-- TAARA mark -->
+          <rect x="30" y="163" width="28" height="1" rx="0.5" fill="rgba(140,84,56,0.15)"/>
+          <!-- Shoulder -->
+          <path d="M16 70 Q16 58 28 54 L60 54 Q72 58 72 70 Z" fill="url(#sg1)"/>
+          <!-- Shoulder highlight -->
+          <path d="M20 70 Q20 61 30 57" stroke="rgba(255,255,255,0.5)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <!-- Neck -->
+          <rect x="30" y="34" width="28" height="22" rx="3" fill="url(#sg1)"/>
+          <!-- Cap base ring -->
+          <rect x="27" y="30" width="34" height="6" rx="2" fill="url(#sg2)"/>
+          <!-- Cap body -->
+          <rect x="29" y="6" width="30" height="26" rx="4" fill="url(#sg2)"/>
+          <!-- Cap highlight -->
+          <rect x="32" y="9" width="6" height="18" rx="3" fill="rgba(255,255,255,0.2)"/>
+          <!-- Cap top dome -->
+          <ellipse cx="44" cy="6" rx="15" ry="6" fill="url(#sg2)"/>
+          <!-- Stem -->
+          <rect x="41.5" y="220" width="5" height="8" rx="2" fill="url(#sg1)"/>
+          <!-- Dropper tip -->
+          <ellipse cx="44" cy="228" rx="4" ry="5" fill="url(#sg2)"/>
+          <!-- Rim reflections -->
+          <rect x="16" y="70" width="56" height="2" rx="1" fill="rgba(255,255,255,0.3)"/>
+          <rect x="16" y="218" width="56" height="2" rx="1" fill="rgba(255,255,255,0.15)"/>
+        </svg>
+      </div>
+
+      <!-- CREAM JAR — moisturizer -->
+      <div class="prod prod-jar">
+        <svg viewBox="0 0 74 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="jg1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#EDE0D3"/><stop offset="50%" stop-color="#FAF5EF"/><stop offset="100%" stop-color="#DDD0C4"/></linearGradient>
+            <linearGradient id="jg2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#B8907A"/><stop offset="50%" stop-color="#D4A88E"/><stop offset="100%" stop-color="#A07060"/></linearGradient>
+            <filter id="jblur"><feGaussianBlur stdDeviation="2"/></filter>
+          </defs>
+          <ellipse cx="37" cy="57" rx="26" ry="4" fill="rgba(140,84,56,0.1)" filter="url(#jblur)"/>
+          <!-- Lid -->
+          <ellipse cx="37" cy="14" rx="34" ry="14" fill="url(#jg2)"/>
+          <ellipse cx="37" cy="14" rx="30" ry="10" fill="rgba(255,255,255,0.12)"/>
+          <ellipse cx="31" cy="11" rx="8" ry="4" fill="rgba(255,255,255,0.2)"/>
+          <!-- Lid rim -->
+          <ellipse cx="37" cy="24" rx="34" ry="5" fill="url(#jg2)"/>
+          <!-- Body -->
+          <path d="M3 28 L3 50 Q3 56 37 56 Q71 56 71 50 L71 28 Z" fill="url(#jg1)"/>
+          <rect x="3" y="26" width="68" height="4" rx="2" fill="url(#jg2)" opacity="0.5"/>
+          <!-- Body highlight -->
+          <path d="M6 30 L6 50 Q6 54 12 55" stroke="rgba(255,255,255,0.5)" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <!-- Label -->
+          <rect x="15" y="35" width="22" height="1.5" rx="1" fill="rgba(140,84,56,0.3)"/>
+          <rect x="15" y="40" width="32" height="1" rx="1" fill="rgba(140,84,56,0.18)"/>
+          <rect x="15" y="45" width="18" height="1" rx="1" fill="rgba(140,84,56,0.18)"/>
+        </svg>
+      </div>
+
+      <!-- TONER BOTTLE — slim upright -->
+      <div class="prod prod-toner">
+        <svg viewBox="0 0 50 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="tg1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#E8D8CC"/><stop offset="50%" stop-color="#FAF5EF"/><stop offset="100%" stop-color="#D8C8BC"/></linearGradient>
+            <linearGradient id="tg2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#C09080"/><stop offset="100%" stop-color="#A07060"/></linearGradient>
+          </defs>
+          <ellipse cx="25" cy="157" rx="14" ry="3" fill="rgba(140,84,56,0.1)"/>
+          <rect x="8" y="28" width="34" height="126" rx="8" fill="url(#tg1)"/>
+          <rect x="10" y="32" width="8" height="110" rx="4" fill="rgba(255,255,255,0.4)"/>
+          <!-- Label band -->
+          <rect x="8" y="75" width="34" height="42" fill="rgba(196,137,106,0.1)"/>
+          <line x1="8" y1="75" x2="42" y2="75" stroke="rgba(196,137,106,0.22)" stroke-width="0.5"/>
+          <line x1="8" y1="117" x2="42" y2="117" stroke="rgba(196,137,106,0.22)" stroke-width="0.5"/>
+          <rect x="14" y="85" width="14" height="1.5" rx="1" fill="rgba(140,84,56,0.3)"/>
+          <rect x="14" y="91" width="20" height="1" rx="1" fill="rgba(140,84,56,0.18)"/>
+          <rect x="14" y="97" width="11" height="1" rx="1" fill="rgba(140,84,56,0.18)"/>
+          <!-- Shoulder -->
+          <path d="M8 28 Q8 18 18 14 L32 14 Q42 18 42 28 Z" fill="url(#tg1)"/>
+          <!-- Cap -->
+          <rect x="14" y="4" width="22" height="12" rx="4" fill="url(#tg2)"/>
+          <ellipse cx="25" cy="4" rx="11" ry="4" fill="url(#tg2)"/>
+          <rect x="17" y="6" width="5" height="8" rx="2.5" fill="rgba(255,255,255,0.2)"/>
+        </svg>
+      </div>
+
+      <!-- CLEANSER TUBE — squeezable -->
+      <div class="prod prod-tube">
+        <svg viewBox="0 0 46 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="cg1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#EDE0D3"/><stop offset="50%" stop-color="#FAF5EF"/><stop offset="100%" stop-color="#DDD0C4"/></linearGradient>
+            <linearGradient id="cg2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#A87860"/><stop offset="100%" stop-color="#8C6048"/></linearGradient>
+          </defs>
+          <ellipse cx="23" cy="126" rx="12" ry="3" fill="rgba(140,84,56,0.1)"/>
+          <!-- Tube body -->
+          <rect x="5" y="20" width="36" height="100" rx="10" fill="url(#cg1)"/>
+          <rect x="7" y="25" width="7" height="85" rx="3.5" fill="rgba(255,255,255,0.38)"/>
+          <!-- Label -->
+          <rect x="5" y="55" width="36" height="40" fill="rgba(196,137,106,0.09)"/>
+          <line x1="5" y1="55" x2="41" y2="55" stroke="rgba(196,137,106,0.2)" stroke-width="0.5"/>
+          <line x1="5" y1="95" x2="41" y2="95" stroke="rgba(196,137,106,0.2)" stroke-width="0.5"/>
+          <rect x="12" y="65" width="14" height="1.5" rx="1" fill="rgba(140,84,56,0.28)"/>
+          <rect x="12" y="71" width="20" height="1" rx="1" fill="rgba(140,84,56,0.16)"/>
+          <rect x="12" y="77" width="12" height="1" rx="1" fill="rgba(140,84,56,0.16)"/>
+          <!-- Nozzle shoulder -->
+          <path d="M5 22 Q5 10 14 6 L32 6 Q41 10 41 22 Z" fill="url(#cg1)"/>
+          <!-- Nozzle cap -->
+          <rect x="14" y="1" width="18" height="7" rx="3" fill="url(#cg2)"/>
+          <ellipse cx="23" cy="1" rx="9" ry="3" fill="url(#cg2)"/>
+          <!-- Crimp bottom -->
+          <rect x="5" y="115" width="36" height="6" rx="3" fill="rgba(196,137,106,0.3)"/>
+        </svg>
+      </div>
+
+      <!-- SUNSCREEN — compact bottle -->
+      <div class="prod prod-sun">
+        <svg viewBox="0 0 60 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="sun1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#F0E6DC"/><stop offset="50%" stop-color="#FAF6F0"/><stop offset="100%" stop-color="#E0D0C4"/></linearGradient>
+            <linearGradient id="sun2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#C4A08A"/><stop offset="100%" stop-color="#A88070"/></linearGradient>
+          </defs>
+          <ellipse cx="30" cy="127" rx="20" ry="4" fill="rgba(140,84,56,0.1)"/>
+          <!-- Body -->
+          <rect x="6" y="30" width="48" height="92" rx="10" fill="url(#sun1)"/>
+          <rect x="8" y="35" width="10" height="78" rx="5" fill="rgba(255,255,255,0.38)"/>
+          <!-- Label -->
+          <rect x="6" y="62" width="48" height="42" fill="rgba(196,137,106,0.1)"/>
+          <line x1="6" y1="62" x2="54" y2="62" stroke="rgba(196,137,106,0.2)" stroke-width="0.5"/>
+          <line x1="6" y1="104" x2="54" y2="104" stroke="rgba(196,137,106,0.2)" stroke-width="0.5"/>
+          <rect x="14" y="72" width="16" height="1.5" rx="1" fill="rgba(140,84,56,0.3)"/>
+          <rect x="14" y="78" width="24" height="1" rx="1" fill="rgba(140,84,56,0.18)"/>
+          <rect x="14" y="84" width="14" height="1" rx="1" fill="rgba(140,84,56,0.18)"/>
+          <!-- SPF badge -->
+          <rect x="30" y="70" width="18" height="18" rx="9" fill="rgba(196,137,106,0.18)"/>
+          <rect x="34" y="76" width="10" height="1.5" rx="1" fill="rgba(140,84,56,0.35)"/>
+          <rect x="34" y="80" width="8" height="1" rx="1" fill="rgba(140,84,56,0.25)"/>
+          <!-- Shoulder -->
+          <path d="M6 32 Q6 16 18 10 L42 10 Q54 16 54 32 Z" fill="url(#sun1)"/>
+          <!-- Cap -->
+          <rect x="10" y="2" width="40" height="12" rx="5" fill="url(#sun2)"/>
+          <ellipse cx="30" cy="2" rx="20" ry="5" fill="url(#sun2)"/>
+          <rect x="14" y="4" width="10" height="8" rx="4" fill="rgba(255,255,255,0.2)"/>
+        </svg>
+      </div>
+
+      <!-- DROPPER — glass pipette -->
+      <div class="prod prod-dropper">
+        <svg viewBox="0 0 34 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="dg1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#E8DDD4"/><stop offset="50%" stop-color="#FAF8F5"/><stop offset="100%" stop-color="#D8CEC4"/></linearGradient>
+            <linearGradient id="dg2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#C09080"/><stop offset="100%" stop-color="#9A7060"/></linearGradient>
+          </defs>
+          <ellipse cx="17" cy="177" rx="5" ry="3" fill="rgba(140,84,56,0.1)"/>
+          <!-- Body cylinder -->
+          <rect x="7" y="50" width="20" height="118" rx="6" fill="url(#dg1)"/>
+          <rect x="9" y="55" width="5" height="100" rx="2.5" fill="rgba(255,255,255,0.42)"/>
+          <!-- Inner serum -->
+          <rect x="11" y="80" width="12" height="70" rx="4" fill="rgba(220,180,150,0.3)"/>
+          <!-- Shoulder -->
+          <path d="M7 52 Q7 42 12 38 L22 38 Q27 42 27 52 Z" fill="url(#dg1)"/>
+          <!-- Neck -->
+          <rect x="12" y="22" width="10" height="18" rx="3" fill="url(#dg1)"/>
+          <!-- Bulb cap -->
+          <ellipse cx="17" cy="16" rx="13" ry="16" fill="url(#dg2)"/>
+          <ellipse cx="13" cy="12" rx="5" ry="6" fill="rgba(255,255,255,0.18)"/>
+          <!-- Stem tip -->
+          <rect x="15" y="168" width="4" height="10" rx="2" fill="url(#dg1)"/>
+          <ellipse cx="17" cy="178" rx="3" ry="4" fill="url(#dg2)"/>
+        </svg>
+      </div>
+
+      <!-- Routine step labels -->
+      <div class="step-label label-cleanser">Cleanser</div>
+      <div class="step-label label-toner">Toner</div>
+      <div class="step-label label-moisturizer">Moisturizer</div>
+      <div class="step-label label-sunscreen">SPF</div>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <span>Discover</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div style="max-width:1200px;margin:0 auto;">
+    <p class="section-label">The Method</p>
+    <h2 class="section-title">Science meets<br>intuition</h2>
+    <p class="section-sub">Three intelligent systems working in harmony to understand your skin at a level no generic routine can match.</p>
+    <div class="how-grid" style="margin-top:4rem;">
+      <div class="how-card">
+        <div class="how-num">01</div>
+        <div class="how-icon">🩹</div>
+        <h3>Diagnostic Patches</h3>
+        <p>Apply four precision-calibrated patches to your skin. Each reads a unique biomarker — pH, oil, hydration, sensitivity — giving real biological data instead of guesswork.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">02</div>
+        <div class="how-icon">✨</div>
+        <h3>AI Facial Analysis</h3>
+        <p>Upload a selfie. Our computer vision pipeline, built on MediaPipe and TensorFlow, maps your face in real time — detecting acne zones, pigmentation, texture, and more.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">03</div>
+        <div class="how-icon">🧬</div>
+        <h3>Your Skin Report</h3>
+        <p>TAARA synthesizes both data streams into a personalized skin report with scored metrics and a curated product routine matched precisely to your biology.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PATCH SELECTION -->
+<section id="patches">
+  <div style="max-width:1200px;margin:0 auto;">
+    <div class="patch-intro">
+      <div>
+        <p class="section-label">Step 01 — Patch Reading</p>
+        <h2 class="section-title">Read your<br>skin's signals</h2>
+        <p class="section-sub">After wearing your TAARA diagnostic patches for 2 hours, match the colors you observe to begin your analysis. Each patch reveals a different layer of your skin biology.</p>
+        <div style="margin-top:2rem;padding:1.2rem 1.5rem;background:rgba(212,165,160,0.07);border:1px solid rgba(212,165,160,0.15);border-radius:14px;">
+          <p style="font-size:0.8rem;color:rgba(250,248,245,0.55);line-height:1.7;">💡 <strong style="color:var(--nude);">MVP Note:</strong> Select the color that most closely matches your patch result. AI scoring updates in real time below.</p>
+        </div>
+      </div>
+      <div class="score-panel">
+        <h3>Live Skin Scores</h3>
+        <div class="score-row">
+          <span class="score-label">Hydration</span>
+          <div class="score-bar-wrap"><div class="score-bar" id="bar-hydration"></div></div>
+          <span class="score-val" id="val-hydration">—</span>
+        </div>
+        <div class="score-row">
+          <span class="score-label">Oil Balance</span>
+          <div class="score-bar-wrap"><div class="score-bar" id="bar-oil"></div></div>
+          <span class="score-val" id="val-oil">—</span>
+        </div>
+        <div class="score-row">
+          <span class="score-label">pH Barrier</span>
+          <div class="score-bar-wrap"><div class="score-bar" id="bar-ph"></div></div>
+          <span class="score-val" id="val-ph">—</span>
+        </div>
+        <div class="score-row">
+          <span class="score-label">Sensitivity</span>
+          <div class="score-bar-wrap"><div class="score-bar" id="bar-sensitivity"></div></div>
+          <span class="score-val" id="val-sensitivity">—</span>
+        </div>
+        <div id="ai-summary" style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,0.06);font-size:0.82rem;color:rgba(250,248,245,0.4);line-height:1.7;min-height:3rem;">
+          Select all four patches to generate your skin summary.
+        </div>
+      </div>
+    </div>
+
+    <div class="patch-grid">
+      <!-- pH PATCH -->
+      <div class="patch-card">
+        <div class="patch-name"><div class="patch-dot" style="background:#9B7DB5;"></div> pH Patch</div>
+        <div class="patch-strip" id="strip-ph" style="background:linear-gradient(90deg,#E8A0A0,#9B7DB5,#7ABFAF);"></div>
+        <p style="font-size:0.75rem;color:rgba(250,248,245,0.4);margin-bottom:0.8rem;letter-spacing:0.04em;">Select the color you observed:</p>
+        <div class="color-options">
+          <div class="color-btn" style="background:#E8A0A0;" data-patch="ph" data-color="pink" data-label="Acidic / Irritated" title="Pink/Red — Acidic skin" onclick="selectPatch(this,'ph',30,'Pink — acidic, irritated barrier. Focus: calming, barrier repair.')"></div>
+          <div class="color-btn" style="background:#9B7DB5;" data-patch="ph" data-color="purple" data-label="Balanced" title="Purple — Balanced pH" onclick="selectPatch(this,'ph',85,'Purple — healthy pH balance. Your barrier is functioning well.')"></div>
+          <div class="color-btn" style="background:#7ABFAF;" data-patch="ph" data-color="blue" data-label="Alkaline / Damaged" title="Blue/Green — Alkaline barrier" onclick="selectPatch(this,'ph',45,'Blue/Green — alkaline, damaged barrier. Focus: pH-correcting actives.')"></div>
+        </div>
+        <div class="patch-result" id="result-ph">Awaiting selection…</div>
+      </div>
+
+      <!-- OIL PATCH -->
+      <div class="patch-card">
+        <div class="patch-name"><div class="patch-dot" style="background:#E8A060;"></div> Oil Patch</div>
+        <div class="patch-strip" id="strip-oil" style="background:linear-gradient(90deg,#F5D5A0,#E8A060,#8B4A20);"></div>
+        <p style="font-size:0.75rem;color:rgba(250,248,245,0.4);margin-bottom:0.8rem;letter-spacing:0.04em;">Select the color you observed:</p>
+        <div class="color-options">
+          <div class="color-btn" style="background:#F5D5A0;" data-patch="oil" onclick="selectPatch(this,'oil',25,'Light orange — low sebum. Your skin may feel tight. Focus: nourishing oils, lipid repair.')"></div>
+          <div class="color-btn" style="background:#E8A060;" data-patch="oil" onclick="selectPatch(this,'oil',75,'Medium orange — balanced sebum. Healthy oil production. Maintain with lightweight moisturizers.')"></div>
+          <div class="color-btn" style="background:#8B4A20;" data-patch="oil" onclick="selectPatch(this,'oil',20,'Dark brown/red — excess sebum. Focus: niacinamide, BHA exfoliants, oil control.')"></div>
+        </div>
+        <div class="patch-result" id="result-oil">Awaiting selection…</div>
+      </div>
+
+      <!-- HYDRATION PATCH -->
+      <div class="patch-card">
+        <div class="patch-name"><div class="patch-dot" style="background:#7090C0;"></div> Hydration Patch</div>
+        <div class="patch-strip" id="strip-hydration" style="background:linear-gradient(90deg,#2D5A9E,#7090C0,#D4A5C0);"></div>
+        <p style="font-size:0.75rem;color:rgba(250,248,245,0.4);margin-bottom:0.8rem;letter-spacing:0.04em;">Select the color you observed:</p>
+        <div class="color-options">
+          <div class="color-btn" style="background:#2D5A9E;" data-patch="hydration" onclick="selectPatch(this,'hydration',15,'Deep blue — severely dehydrated. Priority: hyaluronic acid, ceramides, occlusives.')"></div>
+          <div class="color-btn" style="background:#7090C0;" data-patch="hydration" onclick="selectPatch(this,'hydration',60,'Purple — moderate hydration. Maintain with a humectant + emollient layering routine.')"></div>
+          <div class="color-btn" style="background:#D4A5C0;" data-patch="hydration" onclick="selectPatch(this,'hydration',90,'Pink — well hydrated. Your moisture barrier is performing beautifully.')"></div>
+        </div>
+        <div class="patch-result" id="result-hydration">Awaiting selection…</div>
+      </div>
+
+      <!-- SENSITIVITY PATCH -->
+      <div class="patch-card">
+        <div class="patch-name"><div class="patch-dot" style="background:#C47A7A;"></div> Sensitivity Patch</div>
+        <div class="patch-strip" id="strip-sensitivity" style="background:linear-gradient(90deg,#B0C8A0,#D4A080,#C47A7A);"></div>
+        <p style="font-size:0.75rem;color:rgba(250,248,245,0.4);margin-bottom:0.8rem;letter-spacing:0.04em;">Select the reaction you observed:</p>
+        <div class="color-options">
+          <div class="color-btn" style="background:#B0C8A0;" data-patch="sensitivity" onclick="selectPatch(this,'sensitivity',85,'No change — low reactivity. Your skin tolerates most actives well.')"></div>
+          <div class="color-btn" style="background:#D4A080;" data-patch="sensitivity" onclick="selectPatch(this,'sensitivity',50,'pH shift only — mild irritation. Patch-test new actives. Avoid fragrance.')"></div>
+          <div class="color-btn" style="background:#C47A7A;" data-patch="sensitivity" onclick="selectPatch(this,'sensitivity',15,'pH + heat shift — high sensitivity. Stick to barrier-supportive, fragrance-free products.')"></div>
+        </div>
+        <div class="patch-result" id="result-sensitivity">Awaiting selection…</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FACE ANALYSIS -->
+<section id="analysis">
+  <div style="max-width:1200px;margin:0 auto;">
+    <div class="analysis-wrap">
+      <div>
+        <p class="section-label">Step 02 — Face Analysis</p>
+        <h2 class="section-title">AI reads<br>what mirrors miss</h2>
+        <p class="section-sub">Our computer vision pipeline uses MediaPipe face mesh, OpenCV preprocessing, and TensorFlow classifiers to detect skin concerns invisible to the naked eye.</p>
+        <div class="detection-tags" style="margin-top:2rem;">
+          <div class="det-tag">Acne mapping</div>
+          <div class="det-tag">Redness detection</div>
+          <div class="det-tag">Dark spot analysis</div>
+          <div class="det-tag">Oil shine zones</div>
+          <div class="det-tag">Texture scoring</div>
+          <div class="det-tag">Pigmentation index</div>
+        </div>
+        <div style="margin-top:2rem;padding:1rem 1.2rem;background:rgba(212,165,160,0.05);border:1px solid rgba(212,165,160,0.12);border-radius:12px;">
+          <p style="font-size:0.78rem;color:rgba(250,248,245,0.4);line-height:1.6;">🔒 Your image is processed locally and never stored. TAARA does not retain biometric data.</p>
+        </div>
+      </div>
+      <div>
+        <div class="face-scanner">
+          <div class="scanner-frame">
+            <div class="scan-line"></div>
+            <div class="face-icon">👤</div>
+            <div class="scanner-dots">
+              <div class="s-dot" style="top:20%;left:30%;animation-delay:0s;"></div>
+              <div class="s-dot" style="top:20%;right:30%;animation-delay:0.4s;"></div>
+              <div class="s-dot" style="top:45%;left:15%;animation-delay:0.8s;"></div>
+              <div class="s-dot" style="top:45%;right:15%;animation-delay:0.2s;"></div>
+              <div class="s-dot" style="top:60%;left:40%;animation-delay:1.2s;"></div>
+              <div class="s-dot" style="top:60%;right:40%;animation-delay:0.6s;"></div>
+              <div class="s-dot" style="top:75%;left:50%;transform:translateX(-50%);animation-delay:1s;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="upload-zone" style="margin-top:1.5rem;" onclick="triggerUpload()">
+          <div class="upload-icon">📸</div>
+          <h3>Upload a selfie</h3>
+          <p>A clear, well-lit front-facing photo works best. Avoid filters or heavy makeup for accurate analysis.</p>
+          <button class="btn-primary" style="font-size:0.82rem;padding:0.7rem 1.8rem;">Choose Photo</button>
+          <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleUpload(event)"/>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RECOMMENDATIONS -->
+<section id="recommend">
+  <div style="max-width:1200px;margin:0 auto;">
+    <div class="rec-intro">
+      <p class="section-label">Step 03 — Your Routine</p>
+      <h2 class="section-title">Curated by science,<br>matched to you</h2>
+      <p class="section-sub" style="margin:0 auto;">Every recommendation is generated from your patch scores and face analysis — never random, never generic.</p>
+    </div>
+    <div class="rec-grid" id="rec-grid">
+      <!-- Cards rendered by JS -->
+    </div>
+    <div id="rec-empty" style="text-align:center;padding:3rem;color:rgba(250,248,245,0.3);font-size:0.9rem;">
+      Complete your patch analysis above to unlock personalized recommendations.
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div style="max-width:1200px;margin:0 auto;">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <span class="nav-logo">T A A R A</span>
+        <p>An AI-powered skincare intelligence platform. Early-stage startup building the future of personalized skin health.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="#">Patch Analysis</a>
+        <a href="#">Face Scan</a>
+        <a href="#">Skin Report</a>
+        <a href="#">Routine Builder</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="#">About</a>
+        <a href="#">Research</a>
+        <a href="#">Blog</a>
+        <a href="#">Careers</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Use</a>
+        <a href="#">Data Processing</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 TAARA. All rights reserved.</p>
+      <div class="footer-badge">Early Access — MVP</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ===== LOADER ===== */
+window.addEventListener('load',()=>{
+  setTimeout(()=>{document.getElementById('loader').classList.add('done');},1800);
+});
+
+/* ===== CURSOR ===== */
+const cur=document.getElementById('cursor');
+const ring=document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  cur.style.left=mx+'px';cur.style.top=my+'px';
+});
+(function animRing(){
+  rx+=(mx-rx)*0.12;ry+=(my-ry)*0.12;
+  ring.style.left=rx+'px';ring.style.top=ry+'px';
+  requestAnimationFrame(animRing);
+})();
+document.querySelectorAll('button,.btn-primary,.btn-secondary,.color-btn,.upload-zone,.rec-card').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{ring.style.width='60px';ring.style.height='60px';ring.style.borderColor='rgba(212,165,160,0.6)';});
+  el.addEventListener('mouseleave',()=>{ring.style.width='40px';ring.style.height='40px';ring.style.borderColor='rgba(212,165,160,0.4)';});
+});
+
+/* ===== THREE.JS HERO — ATMOSPHERIC PARTICLE LAYER (light bg) ===== */
+(function initHero(){
+  const canvas=document.getElementById('hero-canvas');
+  if(!canvas)return;
+  const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:false});
+  renderer.setPixelRatio(1);
+  renderer.setSize(window.innerWidth,window.innerHeight);
+
+  const scene=new THREE.Scene();
+  const camera=new THREE.OrthographicCamera(-window.innerWidth/2,window.innerWidth/2,window.innerHeight/2,-window.innerHeight/2,0.1,10);
+  camera.position.z=1;
+
+  /* ── Floating warm motes — very sparse, very soft ── */
+  const count=60;
+  const pos=new Float32Array(count*3);
+  const col=new Float32Array(count*3);
+  const spd=new Float32Array(count);
+  const palette=[[0.77,0.54,0.42],[0.83,0.65,0.63],[0.91,0.84,0.77],[0.96,0.88,0.82]];
+  for(let i=0;i<count;i++){
+    pos[i*3]=(Math.random()-0.5)*window.innerWidth;
+    pos[i*3+1]=(Math.random()-0.5)*window.innerHeight;
+    pos[i*3+2]=0;
+    const c=palette[Math.floor(Math.random()*palette.length)];
+    col[i*3]=c[0];col[i*3+1]=c[1];col[i*3+2]=c[2];
+    spd[i]=0.008+Math.random()*0.014;
+  }
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  geo.setAttribute('color',new THREE.BufferAttribute(col,3));
+  const mat=new THREE.PointsMaterial({size:3,vertexColors:true,transparent:true,opacity:0.22,sizeAttenuation:false});
+  const points=new THREE.Points(geo,mat);
+  scene.add(points);
+
+  const H2=window.innerHeight/2;
+  function tick(){
+    requestAnimationFrame(tick);
+    const p=geo.attributes.position.array;
+    for(let i=0;i<count;i++){
+      p[i*3+1]+=spd[i]*30;
+      if(p[i*3+1]>H2+20){
+        p[i*3+1]=-H2-20;
+        p[i*3]=(Math.random()-0.5)*window.innerWidth;
+      }
+    }
+    geo.attributes.position.needsUpdate=true;
+    renderer.render(scene,camera);
+  }
+  tick();
+
+  window.addEventListener('resize',()=>{
+    renderer.setSize(window.innerWidth,window.innerHeight);
+    camera.left=-window.innerWidth/2;camera.right=window.innerWidth/2;
+    camera.top=window.innerHeight/2;camera.bottom=-window.innerHeight/2;
+    camera.updateProjectionMatrix();
+  });
+})();
+
+/* ===== PATCH LOGIC ===== */
+const scores={ph:null,oil:null,hydration:null,sensitivity:null};
+const summaryMap={
+  high_oil:'Your oil levels are elevated. We recommend niacinamide-based products and BHA exfoliants to regulate sebum.',
+  low_oil:'Your skin is lipid-deprived. Prioritize barrier-repairing oils and rich emollients.',
+  balanced_oil:'Oil balance looks great. Lightweight, non-comedogenic moisturizers will keep it optimal.',
+  dehydrated:'Severe dehydration detected. Hyaluronic acid serums and occlusive moisturizers are your priority.',
+  hydrated:'Excellent hydration. A simple maintenance routine will preserve your skin\'s moisture barrier.',
+  sensitive:'High sensitivity detected. Stick to fragrance-free, barrier-supportive formulations.',
+  ph_off:'Your pH barrier needs attention. Gentle, pH-balanced cleansers and ceramide creams will help restore balance.',
+};
+
+function selectPatch(el,patch,score,label){
+  document.querySelectorAll(`[data-patch="${patch}"]`).forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  scores[patch]=score;
+  const res=document.getElementById(`result-${patch}`);
+  res.textContent=label;
+  res.classList.add('active');
+  updateScores();
+  updateRecommendations();
+}
+
+function setBar(id,val){
+  document.getElementById(`bar-${id}`).style.width=(val||0)+'%';
+  document.getElementById(`val-${id}`).textContent=val!==null?val+'/100':'—';
+}
+
+function updateScores(){
+  setBar('hydration',scores.hydration);
+  setBar('oil',scores.oil);
+  setBar('ph',scores.ph);
+  setBar('sensitivity',scores.sensitivity);
+  const all=Object.values(scores).filter(v=>v!==null);
+  if(all.length===4){
+    let summary='Based on your patch analysis: ';
+    if(scores.oil<40)summary+=summaryMap.high_oil;
+    else if(scores.oil<55)summary+=summaryMap.low_oil;
+    else summary+=summaryMap.balanced_oil;
+    if(scores.hydration<30)summary+=' '+summaryMap.dehydrated;
+    else if(scores.hydration>75)summary+=' '+summaryMap.hydrated;
+    if(scores.sensitivity<40)summary+=' '+summaryMap.sensitive;
+    if(scores.ph<60)summary+=' '+summaryMap.ph_off;
+    document.getElementById('ai-summary').textContent=summary;
+  }
+}
+
+/* ===== RECOMMENDATION ENGINE — 4-STEP ROUTINE ===== */
+/* Core 4-step routine: Cleanser → Toner → Moisturizer → Sunscreen
+   Optional extras only if scores indicate */
+
+const routineDB={
+  /* CLEANSERS */
+  cleanser:[
+    {brand:'CeraVe',name:'Hydrating Facial Cleanser',step:'Cleanser',why:'Soap-free, pH-balanced. Gentle enough for sensitive and dry skin.',ingredient:'Ceramides + Hyaluronic Acid',compat:94,condition:'sensitive_or_dry',link:'https://www.cerave.com/facial-cleansers/hydrating-cleanser/hydrating-facial-cleanser'},
+    {brand:'CeraVe',name:'Foaming Facial Cleanser',step:'Cleanser',why:'Removes excess oil without over-stripping. Best for oily and combination skin.',ingredient:'Niacinamide + Ceramides',compat:91,condition:'oily',link:'https://www.cerave.com/facial-cleansers/foaming-cleanser/foaming-facial-cleanser'},
+    {brand:'Cetaphil',name:'Gentle Skin Cleanser',step:'Cleanser',why:'Fragrance-free, ultra-gentle. Ideal for reactive and high-sensitivity skin.',ingredient:'Glycerin + Niacinamide',compat:96,condition:'high_sensitivity',link:'https://www.cetaphil.com/us/product/gentle-skin-cleanser'},
+  ],
+  /* TONERS */
+  toner:[
+    {brand:'COSRX',name:'AHA/BHA Clarifying Treatment Toner',step:'Toner',why:'Gentle exfoliating toner. Clears congestion and refines texture for oily skin.',ingredient:'AHA + BHA',compat:88,condition:'oily',link:'https://www.cosrx.com/products/aha-bha-clarifying-treatment-toner'},
+    {brand:'Beauty of Joseon',name:'Green Tea + Panthenol Calming Toner',step:'Toner',why:'Soothes barrier damage and redness. Ideal for sensitive and pH-disrupted skin.',ingredient:'Green Tea + Panthenol',compat:93,condition:'sensitive_or_ph',link:'https://beautyofjoseon.com/products/green-tea-panthenol-calming-toner'},
+    {brand:'The Ordinary',name:'Glycolic Acid 7% Toning Solution',step:'Toner',why:'Resurfaces texture and brightens dull skin. Best for balanced oil and adequate hydration.',ingredient:'Glycolic Acid 7%',compat:84,condition:'balanced',link:'https://theordinary.com/en-us/glycolic-acid-7-toning-solution-100416.html'},
+  ],
+  /* MOISTURIZERS */
+  moisturizer:[
+    {brand:'CeraVe',name:'Moisturizing Cream',step:'Moisturizer',why:'Rich barrier-restoring formula. Recommended when hydration score is below 50.',ingredient:'Ceramides + Hyaluronic Acid',compat:95,condition:'dry_or_dehydrated',link:'https://www.cerave.com/moisturizers/moisturizing-cream/moisturizing-cream-for-face-and-body'},
+    {brand:'CeraVe',name:'PM Facial Moisturizing Lotion',step:'Moisturizer',why:'Lightweight, non-comedogenic. Perfect for balanced and oily skin types at night.',ingredient:'Niacinamide + Ceramides',compat:90,condition:'oily_or_balanced',link:'https://www.cerave.com/moisturizers/pm-facial-moisturizing-lotion/pm-facial-moisturizing-lotion'},
+    {brand:'Cetaphil',name:'Daily Hydrating Lotion',step:'Moisturizer',why:'Fragrance-free, hypoallergenic. Non-irritating for reactive sensitive skin.',ingredient:'Hyaluronic Acid + Vitamin B5',compat:94,condition:'high_sensitivity',link:'https://www.cetaphil.com/us/product/daily-hydrating-lotion'},
+  ],
+  /* SUNSCREENS */
+  sunscreen:[
+    {brand:'Beauty of Joseon',name:'Relief Sun: Rice + Probiotics SPF50+',step:'Sunscreen',why:'Lightweight mineral-hybrid finish. No white cast. Suitable for all skin types.',ingredient:'Rice Extract + Probiotics',compat:92,condition:'all',link:'https://beautyofjoseon.com/products/relief-sun-rice-probiotics'},
+    {brand:'COSRX',name:'Aloe Soothing Sun Cream SPF50',step:'Sunscreen',why:'Calming SPF with aloe. Ideal for sensitive and post-treatment skin.',ingredient:'Aloe Vera + SPF50',compat:90,condition:'sensitive',link:'https://www.cosrx.com/products/aloe-soothing-sun-cream-spf50-pa'},
+  ],
+  /* OPTIONAL EXTRAS — only shown when scores call for it */
+  extras:[
+    {brand:'The Ordinary',name:'Niacinamide 10% + Zinc 1%',step:'Serum (Optional)',why:'Controls sebum and minimizes pores. Added only when oil score is high.',ingredient:'Niacinamide 10% + Zinc',compat:89,condition:'high_oil',link:'https://theordinary.com/en-us/niacinamide-10-zinc-1-100436.html'},
+    {brand:'COSRX',name:'Advanced Snail 96 Mucin Power Essence',step:'Essence (Optional)',why:'Intensive hydration repair. Added when hydration score is critically low.',ingredient:'Snail Secretion Filtrate 96%',compat:91,condition:'very_dehydrated',link:'https://www.cosrx.com/products/advanced-snail-96-mucin-power-essence'},
+    {brand:'Minimalist',name:'Alpha Arbutin 2% + HA',step:'Serum (Optional)',why:'Fades dark spots and pigmentation. Recommended with moderate-high hydration.',ingredient:'Alpha Arbutin 2% + Hyaluronic Acid',compat:86,condition:'pigmentation',link:'https://beminimalist.co/products/alpha-arbutin-2-ha'},
+    {brand:'Minimalist',name:'Salicylic Acid 2% Face Serum',step:'Treatment (Optional)',why:'Unclogs pores and clears acne. Added when oil is high and sensitivity is low.',ingredient:'Salicylic Acid 2% (BHA)',compat:84,condition:'high_oil_low_sensitivity',link:'https://beminimalist.co/products/salicylic-acid-2-face-serum'},
+  ],
+};
+
+function pickCleanser(){
+  if(scores.sensitivity!==null&&scores.sensitivity<40)return routineDB.cleanser[2];
+  if(scores.oil!==null&&scores.oil<40)return routineDB.cleanser[1];
+  return routineDB.cleanser[0];
+}
+function pickToner(){
+  if(scores.sensitivity!==null&&scores.sensitivity<50)return routineDB.toner[1];
+  if(scores.oil!==null&&scores.oil<40)return routineDB.toner[0];
+  return routineDB.toner[2];
+}
+function pickMoisturizer(){
+  if(scores.sensitivity!==null&&scores.sensitivity<40)return routineDB.moisturizer[2];
+  if(scores.hydration!==null&&scores.hydration<50)return routineDB.moisturizer[0];
+  return routineDB.moisturizer[1];
+}
+function pickSunscreen(){
+  if(scores.sensitivity!==null&&scores.sensitivity<50)return routineDB.sunscreen[1];
+  return routineDB.sunscreen[0];
+}
+function pickExtras(){
+  const extras=[];
+  if(scores.oil!==null&&scores.oil<40){
+    if(scores.sensitivity===null||scores.sensitivity>45)
+      extras.push(routineDB.extras[3]);/* BHA */
+    extras.push(routineDB.extras[0]);/* Niacinamide */
+  }
+  if(scores.hydration!==null&&scores.hydration<30)
+    extras.push(routineDB.extras[1]);/* Snail essence */
+  return extras.slice(0,2);/* max 2 extras */
+}
+
+function renderProductCard(p,idx){
+  const stepColors={'Cleanser':'#8C8060','Toner':'#7A8C80','Moisturizer':'#8C6A7A','Sunscreen':'#8A7060','Serum (Optional)':'#706080','Essence (Optional)':'#607080','Treatment (Optional)':'#706060'};
+  const col=stepColors[p.step]||'#806060';
+  return`<div class="rec-card" style="animation-delay:${idx*0.08}s">
+    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.8rem;">
+      <span style="font-size:0.58rem;letter-spacing:0.18em;text-transform:uppercase;color:${col};background:${col}18;border:1px solid ${col}30;border-radius:50px;padding:0.2rem 0.6rem;">${p.step}</span>
+    </div>
+    <div class="rec-brand">${p.brand}</div>
+    <div class="rec-name">${p.name}</div>
+    <div class="rec-why">${p.why}</div>
+    <div class="rec-ingredient">🧪 ${p.ingredient}</div>
+    <div class="compat-bar">
+      <span class="compat-label">Match score</span>
+      <div class="compat-track"><div class="compat-fill" style="width:${p.compat}%"></div></div>
+      <span style="font-size:0.75rem;color:var(--blush);min-width:35px;">${p.compat}%</span>
+    </div>
+    <a href="${p.link}" target="_blank" rel="noopener" class="rec-link">View Product →</a>
+  </div>`;
+}
+
+function updateRecommendations(){
+  const filled=Object.values(scores).filter(v=>v!==null);
+  if(filled.length<2)return;
+  const grid=document.getElementById('rec-grid');
+  const empty=document.getElementById('rec-empty');
+  empty.style.display='none';
+
+  const routine=[pickCleanser(),pickToner(),pickMoisturizer(),pickSunscreen(),...pickExtras()];
+  grid.innerHTML=routine.map((p,i)=>renderProductCard(p,i)).join('');
+}
+
+/* ===== FILE UPLOAD ===== */
+function triggerUpload(){document.getElementById('fileInput').click();}
+function handleUpload(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=document.createElement('img');
+    img.src=ev.target.result;
+    img.style.cssText='width:80px;height:80px;object-fit:cover;border-radius:50%;border:2px solid rgba(212,165,160,0.4);margin:0 auto;display:block;';
+    const zone=document.querySelector('.upload-zone');
+    zone.innerHTML='';
+    zone.appendChild(img);
+    const msg=document.createElement('p');
+    msg.style.cssText='margin-top:1rem;font-size:0.82rem;color:var(--blush);text-align:center;';
+    msg.textContent='✓ Image received. AI analysis would run on your FastAPI backend.';
+    zone.appendChild(msg);
+    const note=document.createElement('p');
+    note.style.cssText='margin-top:0.5rem;font-size:0.75rem;color:rgba(250,248,245,0.3);text-align:center;';
+    note.textContent='In production: MediaPipe + OpenCV + TensorFlow pipeline.';
+    zone.appendChild(note);
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ===== AMBIENT PARTICLES ===== */
+for(let i=0;i<12;i++){
+  const p=document.createElement('div');
+  p.className='particle';
+  const size=Math.random()*4+2;
+  p.style.cssText=`
+    width:${size}px;height:${size}px;
+    left:${Math.random()*100}%;
+    opacity:${Math.random()*0.3+0.1};
+    animation-duration:${Math.random()*20+15}s;
+    animation-delay:${Math.random()*15}s;
+  `;
+  document.body.appendChild(p);
+}
+
+/* ===== SCROLL REVEAL ===== */
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.style.opacity='1';
+      e.target.style.transform='translateY(0)';
+    }
+  });
+},{threshold:0.1});
+document.querySelectorAll('.how-card,.patch-card,.rec-card').forEach(el=>{
+  el.style.cssText+='opacity:0;transform:translateY(30px);transition:opacity 0.8s ease,transform 0.8s ease;';
+  observer.observe(el);
+});
+</script>
+</body>
+</html>
